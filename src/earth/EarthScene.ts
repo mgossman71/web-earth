@@ -464,7 +464,12 @@ export class EarthScene {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x000000, 1);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.1;
+    // Retuned 2026-09 (code-review follow-up #1): the original 1.1 pre-dated the
+    // ACES + sRGB pipeline and now over-brightens the image, since both the tone
+    // map and the sRGB encode act on the shader output. 1.0 is the neutral
+    // compensation for the +10% lift it added.
+    // FLAG: verify against the signed-off look — this is a visual-tuning value.
+    renderer.toneMappingExposure = 1.0;
     this.container.appendChild(renderer.domElement);
     window.addEventListener('resize', this.onResize);
     return renderer;
@@ -537,7 +542,11 @@ export class EarthScene {
         uCloudTexture: { value: cloudTexture },
         uSunDirection: { value: this.sun.direction },
         uOceanSpecular: { value: 0.45 },
-        uNightIntensity: { value: 2.5 },
+        // Retuned 2026-09 (code-review follow-up #1): 2.5 was set to make city
+        // lights read under the old no-encode pipeline; with ACES + sRGB live it
+        // now blows out. 1.6 is a conservative compensation.
+        // FLAG: verify against the signed-off look — this is a visual-tuning value.
+        uNightIntensity: { value: 1.6 },
         uCloudShadowStrength: { value: this.state.clouds ? 0.2 : 0.0 },
         uCloudUVOffset: { value: 0.0 },
         uSoftFill: { value: 0 },
